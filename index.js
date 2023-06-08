@@ -50,6 +50,7 @@ async function run() {
     // Send a ping to confirm a successful connection
     
     const usersCollection = client.db('musicSchool').collection('users');
+    const allClassCollection = client.db('musicSchool').collection('allClasses');
     
 
     // create jwt
@@ -143,7 +144,37 @@ async function run() {
       const result = {instructor: user?.role === 'instructor'}
       res.send(result);
     })
+
+
+    // add a class
+    app.post('/allClasses', async(req,res)=>{
+      const allClass = req.body;
+      const result = await allClassCollection.insertOne(allClass);
+      res.send(result);
+    })
+
+    // get all class
+    app.get('/allClasses', async(req,res)=>{
+      const result = await allClassCollection.find().toArray();
+      res.send(result);
+    })
+
+    // get classes by instructor email
+  app.get('/classesByInstructorEmail', async (req, res) => {
+    const email = req.query.email;
+    const query = { instructorEmail: email };
+
+  try {
+    const result = await allClassCollection.find(query).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while fetching classes by instructor email.' });
+  }
+});
     
+
+
     
     
     
