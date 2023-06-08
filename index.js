@@ -58,6 +58,17 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'}) 
       res.send({token})
     })
+
+    // verify admin
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'admin') {
+        return res.status(403).send({ error: true, message: 'forbidden message' });
+      }
+      next();
+    }
     
     
     // save users api
@@ -73,7 +84,7 @@ async function run() {
     })
 
     // lode user api
-    app.get('/users', async(req,res)=>{
+    app.get('/users', verifyJWT,verifyAdmin, async(req,res)=>{
       const result = await usersCollection.find().toArray();
       res.send(result)
     })
