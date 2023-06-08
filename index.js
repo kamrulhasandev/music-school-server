@@ -172,6 +172,37 @@ async function run() {
     res.status(500).json({ error: 'An error occurred while fetching classes by instructor email.' });
   }
 });
+
+
+  // update status approved
+  app.put('/updateStatusApproved/:id', async (req, res) => {
+    const id = req.params.id;
+    console.log(id);
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = {
+      $set: {
+        status: 'approved'
+      },
+    };
+  
+    const result = await allClassCollection.updateOne(filter, updateDoc); 
+    res.send(result);
+  });
+
+  // update status deny
+  app.put('/updateStatusDeny/:id', async (req, res) => {
+    const id = req.params.id;
+    console.log(id);
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = {
+      $set: {
+        status: 'deny'
+      },
+    };
+  
+    const result = await allClassCollection.updateOne(filter, updateDoc); 
+    res.send(result);
+  });
     
 
 
