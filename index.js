@@ -250,7 +250,13 @@ app.patch('/updateFeedback/:id', async (req, res) => {
     res.send(result)
   })
 
-
+  // delete class
+  app.delete('/selectedClass/:id', async(req,res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    const result = await selectClassCollection.deleteOne(query);
+    res.send(result)
+  })
 
     
 
