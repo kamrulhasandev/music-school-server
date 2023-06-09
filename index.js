@@ -51,6 +51,7 @@ async function run() {
     
     const usersCollection = client.db('musicSchool').collection('users');
     const allClassCollection = client.db('musicSchool').collection('allClasses');
+    const selectClassCollection = client.db('musicSchool').collection('selectedClass');
     
 
     // create jwt
@@ -220,6 +221,34 @@ app.patch('/updateFeedback/:id', async (req, res) => {
   const result = await allClassCollection.updateOne(filter, updateDoc);
   res.send(result);
 });
+
+
+
+  // get approved classes
+  app.get('/approvedClasses', async (req, res) => {
+    const query = { status: 'approved' };
+    const result = await allClassCollection.find(query).toArray();
+    res.send(result);
+  });
+
+
+  // select class post
+  app.post('/selectedClass', async(req,res)=>{
+    const item = req.body;
+    const result = await selectClassCollection.insertOne(item);
+    res.send(result)
+  })
+
+  // get select class
+  app.get('/selectedClass', async(req,res)=>{
+    const email = req.query.email;
+    if(!email){
+      res.send([])
+    }
+    const query = {email: email};
+    const result = await selectClassCollection.find(query).toArray();
+    res.send(result)
+  })
 
 
 
