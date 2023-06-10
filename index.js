@@ -3,6 +3,7 @@ const app = express()
 const cors = require('cors')
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.STRIPE_SECRET)
 const port = process.env.PORT || 5000
 
 // middleware
@@ -52,6 +53,7 @@ async function run() {
     const usersCollection = client.db('musicSchool').collection('users');
     const allClassCollection = client.db('musicSchool').collection('allClasses');
     const selectClassCollection = client.db('musicSchool').collection('selectedClass');
+    const paymentCollection = client.db('musicSchool').collection('payments');
     
 
     // create jwt
@@ -86,7 +88,7 @@ async function run() {
     })
 
     // lode user api
-    app.get('/users', verifyJWT,verifyAdmin, async(req,res)=>{
+    app.get('/users', verifyJWT, async(req,res)=>{
       const result = await usersCollection.find().toArray();
       res.send(result)
     })
@@ -257,6 +259,66 @@ app.patch('/updateFeedback/:id', async (req, res) => {
     const result = await selectClassCollection.deleteOne(query);
     res.send(result)
   })
+
+  // stripe payment post
+  app.post('/create-payment-intent', verifyJWT, async(req,res)=>{
+    const {price} = req.body;
+    const amount = parseFloat(price * 100);
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount : amount,
+      currency: 'usd',
+      payment_method_types: ['card']
+    })
+    res.send({
+      clientSecret: paymentIntent.client_secret
+    })
+  })
+
+  // get single class
+    app.get('/selectedClass/:id', async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await selectClassCollection.findOne(query);
+      res.send(result)
+    })
+
+    // payment success api
+    app.post('/payments', verifyJWT, async(req,res)=>{
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result)
+    })
+
+    app.put('/selectedClass/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: 'paid'
+        },
+      };
+    
+      const result = await selectClassCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+
+    // get payment history
+  app.get('/payments', async(req,res)=>{
+    const email = req.query.email;
+    if(!email){
+      res.send([])
+    }
+    const query = {email: email};
+    const result = await paymentCollection.find(query).toArray();
+    res.send(result)
+  })
+
+  app.get('/instructors', async (req, res) => {
+    const result = await usersCollection.find({ role: 'instructor' }).toArray();
+    res.send(result);
+  });
+  
 
     
 
