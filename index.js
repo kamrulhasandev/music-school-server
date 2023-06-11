@@ -318,6 +318,40 @@ app.patch('/updateFeedback/:id', async (req, res) => {
     const result = await usersCollection.find({ role: 'instructor' }).toArray();
     res.send(result);
   });
+
+
+  app.patch('/update/:id', async (req, res) => {
+      const classId = req.params.id;
+      console.log(classId);
+  
+      const filter = { _id: new ObjectId(classId) };
+      const previousData = await allClassCollection.findOne(filter);
+      console.log(previousData);
+      const updateDoc = { $set: 
+        { availableSeats:  previousData?.availableSeats -1 ,
+          totalStudent: previousData?.totalStudent +1
+        } 
+      }
+      const result = await allClassCollection.updateOne(filter,updateDoc);
+      res.send(result);
+    
+  });
+
+
+  app.get('/updateOne/:id', async(req,res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    const result = await allClassCollection.findOne(query);
+    res.send(result)
+  })
+
+  app.patch('/updateClassInfo/:id', async(req,res)=>{
+    const id = req.params.id;
+    
+  })
+  
+  
+  
   
 
     
