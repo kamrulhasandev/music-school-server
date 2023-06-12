@@ -354,11 +354,7 @@ app.patch('/updateFeedback/:id', async (req, res) => {
   
   
 
-    
-
-
-    
-    
+  
     
     
     await client.db('admin').command({ ping: 1 })
